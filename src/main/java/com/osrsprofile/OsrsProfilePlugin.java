@@ -2,10 +2,12 @@ package com.osrsprofile;
 
 import com.google.inject.Provides;
 import javax.inject.Inject;
+
+import com.osrsprofile.tracker.PlayerTracker;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
-import net.runelite.api.Skill;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -29,8 +31,7 @@ public class OsrsProfilePlugin extends Plugin
 
 	private PlayerTracker playerTracker;
 
-	private final int SECONDS_BETWEEN_UPLOADS = 10;
-	private final int SECONDS_BETWEEN_MANIFEST_CHECKS = 20*60;
+	private final int SECONDS_BETWEEN_UPLOADS = 60;
 
 	@Override
 	protected void startUp() throws Exception {
@@ -43,28 +44,32 @@ public class OsrsProfilePlugin extends Plugin
 		log.info("Player tracker stopped");
 	}
 
+	@Provides
+	OsrsProfileConfig provideConfig(ConfigManager configManager) {
+		return configManager.getConfig(OsrsProfileConfig.class);
+	}
+
 	@Schedule(
 			period = SECONDS_BETWEEN_UPLOADS,
 			unit = ChronoUnit.SECONDS
 	)
 	public void submitToAPI()
 	{
-		if (client != null && client.getGameState() == GameState.LOGGED_IN) {
+		if (client != null) {
 			this.playerTracker.submitToApi(client);
 		}
 	}
 
-	@Schedule(
-			period = SECONDS_BETWEEN_MANIFEST_CHECKS,
-			unit = ChronoUnit.SECONDS
-	)
-	public void resyncPlayerModel()
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged event)
 	{
-		this.playerTracker.fetchPlayerModel();
-	}
+		String accountHash = String.valueOf(client.getAccountHash());
 
-	@Provides
-	OsrsProfileConfig provideConfig(ConfigManager configManager) {
-		return configManager.getConfig(OsrsProfileConfig.class);
+		if (event.getGameState() == GameState.LOGIN_SCREEN) {
+			playerTracker.accountHash = null;
+		} else if (playerTracker.accountHash == null && !accountHash.equals("-1")) {
+			playerTracker.accountHash = accountHash;
+			playerTracker.fetchPlayerData();
+		}
 	}
 }
