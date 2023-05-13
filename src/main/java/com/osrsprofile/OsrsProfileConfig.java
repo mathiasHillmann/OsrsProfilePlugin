@@ -4,16 +4,56 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
-@ConfigGroup("example")
+@ConfigGroup("osrsprofile")
 public interface OsrsProfileConfig extends Config
 {
 	@ConfigItem(
-		keyName = "greeting",
-		name = "Welcome Greeting",
-		description = "The message to show to the user when they login"
+		keyName = "trackSkills",
+		name = "Track skills",
+		description = "Whether to track skills or not"
 	)
-	default String greeting()
+	default boolean trackSkills()
 	{
-		return "Hello";
+		return true;
+	}
+
+	@ConfigItem(
+			keyName = "trackQuests",
+			name = "Track quests",
+			description = "Whether to track quests or not"
+	)
+	default boolean trackQuests()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+			keyName = "trackDiaries",
+			name = "Track achievement diaries",
+			description = "Whether to track achievement diaries or not"
+	)
+	default boolean trackDiaries()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+			keyName = "trackCombat",
+			name = "Track combat achievements",
+			description = "Whether to track combat achievements or not"
+	)
+	default boolean trackCombat()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+			keyName = "trackMinigames",
+			name = "Track minigames",
+			description = "Whether to track minigames or not"
+	)
+	default boolean trackMinigames()
+	{
+		return true;
 	}
 }

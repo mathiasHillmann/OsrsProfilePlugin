@@ -3,6 +3,7 @@ package com.osrsprofile.tracker;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.osrsprofile.OsrsProfileConfig;
 import com.osrsprofile.tracker.dto.TrackingObject;
 import com.osrsprofile.tracker.dto.TrackingRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -23,25 +24,31 @@ import java.util.Map;
 public class PlayerTracker {
     private final String API_URL = "http://osrsprofilebackend.test/public/player";
 
-    private Map<String, TrackingObject> playerData = new HashMap<String, TrackingObject>();
+    private Map<String, TrackingObject> playerData = new HashMap<>();
 
     private static final HttpClient httpClient = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(Duration.ofSeconds(60))
             .build();
 
-    public String accountHash;
+    public String accountHash = null;
 
-    public void fetchPlayerData()
+    public void fetchPlayerData(OsrsProfileConfig config)
     {
-        if (this.accountHash.equals(null)) {
+        if (this.accountHash == null) {
             return;
         }
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .GET()
-                    .uri(URI.create(API_URL+'/'+this.accountHash))
+                    .uri(URI.create(API_URL+'/'+this.accountHash
+                        +"?quests="+config.trackQuests()
+                        +"&skills="+config.trackSkills()
+                        +"&minigames="+config.trackMinigames()
+                        +"&diaries="+config.trackDiaries()
+                        +"&combat="+config.trackCombat()
+                    ))
                     .setHeader("User-Agent", "RuneLite")
                     .build();
 
@@ -62,7 +69,7 @@ public class PlayerTracker {
 
     public void submitToApi(Client client)
     {
-        if (this.accountHash.equals(null)) {
+        if (this.accountHash == null) {
             return;
         }
         this.updatePlayerModel(client);
@@ -83,7 +90,7 @@ public class PlayerTracker {
                     .setHeader("Content-Type", "application/json")
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (Exception e) {
             log.error("Could not submit player data to api", e);
         }
@@ -91,9 +98,7 @@ public class PlayerTracker {
 
     private void updatePlayerModel(Client client)
     {
-        this.playerData.forEach((key, item) -> {
-            item.value = this.getValue(item.index, item.type, client);
-        });
+        this.playerData.forEach((key, item) -> item.value = this.getValue(item.index, item.type, client));
     }
 
     private Integer getValue(String index, String type, Client client) {
@@ -104,10 +109,10 @@ public class PlayerTracker {
                 value = client.getSkillExperience(Skill.valueOf(index));
                 break;
             case "varb":
-                value = client.getVarbitValue(Integer.valueOf(index));
+                value = client.getVarbitValue(Integer.parseInt(index));
                 break;
             case "varp":
-                value = client.getVarpValue(Integer.valueOf(index));
+                value = client.getVarpValue(Integer.parseInt(index));
                 break;
         }
 

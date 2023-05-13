@@ -8,9 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.GameTick;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.task.Schedule;
@@ -19,7 +19,7 @@ import java.time.temporal.ChronoUnit;
 
 @Slf4j
 @PluginDescriptor(
-		name = "OsrsProfilePlugin"
+		name = "OSRS Profile"
 )
 public class OsrsProfilePlugin extends Plugin
 {
@@ -69,7 +69,14 @@ public class OsrsProfilePlugin extends Plugin
 			playerTracker.accountHash = null;
 		} else if (playerTracker.accountHash == null && !accountHash.equals("-1")) {
 			playerTracker.accountHash = accountHash;
-			playerTracker.fetchPlayerData();
+			playerTracker.fetchPlayerData(this.config);
+		}
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event) {
+		if (event.getGroup().equals("osrsprofile")) {
+			playerTracker.fetchPlayerData(this.config);
 		}
 	}
 }
