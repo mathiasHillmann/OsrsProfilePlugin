@@ -34,13 +34,13 @@ public class OsrsProfilePlugin extends Plugin
 	private final int SECONDS_BETWEEN_UPLOADS = 60;
 
 	@Override
-	protected void startUp() throws Exception {
+	protected void startUp() {
 		log.info("Player tracker started");
 		this.playerTracker = new PlayerTracker();
 	}
 
 	@Override
-	protected void shutDown() throws Exception {
+	protected void shutDown() {
 		log.info("Player tracker stopped");
 	}
 
