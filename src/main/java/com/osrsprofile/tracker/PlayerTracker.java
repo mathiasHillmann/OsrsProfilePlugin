@@ -22,7 +22,7 @@ import java.util.Map;
 
 @Slf4j
 public class PlayerTracker {
-    private final String API_URL = "http://osrsprofilebackend.test/public/player";
+    private final String API_URL = "http://api.osrsprofile.com/public/player";
 
     private Map<String, TrackingObject> playerData = new HashMap<>();
 
@@ -48,6 +48,8 @@ public class PlayerTracker {
                         +"&minigames="+config.trackMinigames()
                         +"&diaries="+config.trackDiaries()
                         +"&combat="+config.trackCombat()
+                        +"&bosskills="+config.trackBossKills()
+                        +"&slayermonsters="+config.trackSlayerMonstersKills()
                     ))
                     .setHeader("User-Agent", "RuneLite")
                     .build();

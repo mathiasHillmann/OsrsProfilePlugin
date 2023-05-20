@@ -56,4 +56,24 @@ public interface OsrsProfileConfig extends Config
 	{
 		return true;
 	}
+
+	@ConfigItem(
+			keyName = "trackBossKills",
+			name = "Track boss kills",
+			description = "Whether to track boss kills or not"
+	)
+	default boolean trackBossKills()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+			keyName = "trackSlayerMonstersKills",
+			name = "Track slayer monsters kills",
+			description = "Whether to track slayer monsters kills or not"
+	)
+	default boolean trackSlayerMonstersKills()
+	{
+		return true;
+	}
 }
