@@ -29,6 +29,7 @@ public class OsrsProfilePlugin extends Plugin
 	@Inject
 	private OsrsProfileConfig config;
 
+	@Inject
 	private PlayerTracker playerTracker;
 
 	private final int SECONDS_BETWEEN_UPLOADS = 60;
@@ -36,7 +37,6 @@ public class OsrsProfilePlugin extends Plugin
 	@Override
 	protected void startUp() {
 		log.info("Player tracker started");
-		this.playerTracker = new PlayerTracker();
 	}
 
 	@Override

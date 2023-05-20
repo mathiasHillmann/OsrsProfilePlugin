@@ -11,25 +11,25 @@ import net.runelite.api.Client;
 import net.runelite.api.Skill;
 
 import java.lang.reflect.Type;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+import javax.inject.Inject;
+
 @Slf4j
 public class PlayerTracker {
-    private final String API_URL = "http://api.osrsprofile.com/public/player";
+    private final String API_URL = "http://api.OsrsProfileBackend.test/public/player";
 
     private Map<String, TrackingObject> playerData = new HashMap<>();
 
-    private static final HttpClient httpClient = HttpClient.newBuilder()
-            .version(HttpClient.Version.HTTP_1_1)
-            .connectTimeout(Duration.ofSeconds(60))
-            .build();
+    @Inject
+    private OkHttpClient httpClient;
 
     public String accountHash = null;
 
@@ -40,9 +40,8 @@ public class PlayerTracker {
         }
 
         try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .GET()
-                    .uri(URI.create(API_URL+'/'+this.accountHash
+            Request request = new Request.Builder()
+                    .url(API_URL+'/'+this.accountHash
                         +"?quests="+config.trackQuests()
                         +"&skills="+config.trackSkills()
                         +"&minigames="+config.trackMinigames()
@@ -50,19 +49,19 @@ public class PlayerTracker {
                         +"&combat="+config.trackCombat()
                         +"&bosskills="+config.trackBossKills()
                         +"&slayermonsters="+config.trackSlayerMonstersKills()
-                    ))
-                    .setHeader("User-Agent", "RuneLite")
+                    )
+                    .addHeader("User-Agent", "RuneLite")
                     .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            Response response = httpClient.newCall(request).execute();
 
-            if (response.statusCode() == HttpURLConnection.HTTP_OK) {
+            if (response.code() == 200) {
                 Gson gson = new GsonBuilder().create();
                 Type type = new TypeToken<Map<String, TrackingObject>>() {}.getType();
-                this.playerData = gson.fromJson(response.body(), type);
+                this.playerData = gson.fromJson(response.body().string(), type);
 
             } else {
-                log.error("Could not fetch player data from api, api returned: ("+response.statusCode()+") - "+response.body());
+                log.error("Could not fetch player data from api, api returned: ("+response.code()+") - "+response.body().string());
             }
         } catch (Exception e) {
             log.error("Could not fetch model from api", e);
@@ -85,14 +84,15 @@ public class PlayerTracker {
             Gson gson = new GsonBuilder().serializeNulls().create();
             String json = gson.toJson(requestObj);
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .POST(HttpRequest.BodyPublishers.ofString(json))
-                    .uri(URI.create(API_URL+'/'+this.accountHash))
-                    .setHeader("User-Agent", "RuneLite")
-                    .setHeader("Content-Type", "application/json")
+            Request request = new Request.Builder()
+                    .url(API_URL+'/'+this.accountHash)
+                    .post(RequestBody.create(MediaType.parse("application/json"), json))
+                    .addHeader("User-Agent", "RuneLite")
+                    .addHeader("Content-Type", "application/json")
                     .build();
 
-            httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            Response response = httpClient.newCall(request).execute();
+            log.debug(response.body().string());
         } catch (Exception e) {
             log.error("Could not submit player data to api", e);
         }
