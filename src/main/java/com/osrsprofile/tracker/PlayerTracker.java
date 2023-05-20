@@ -24,7 +24,7 @@ import javax.inject.Inject;
 
 @Slf4j
 public class PlayerTracker {
-    private final String API_URL = "http://api.OsrsProfileBackend.test/public/player";
+    private final String API_URL = "http://api.osrsprofile.com/public/player";
 
     private Map<String, TrackingObject> playerData = new HashMap<>();
 
