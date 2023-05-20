@@ -31,6 +31,9 @@ public class PlayerTracker {
     @Inject
     private OkHttpClient httpClient;
 
+    @Inject
+    private Gson gson;
+
     public String accountHash = null;
 
     public void fetchPlayerData(OsrsProfileConfig config)
@@ -56,7 +59,6 @@ public class PlayerTracker {
             Response response = httpClient.newCall(request).execute();
 
             if (response.code() == 200) {
-                Gson gson = new GsonBuilder().create();
                 Type type = new TypeToken<Map<String, TrackingObject>>() {}.getType();
                 this.playerData = gson.fromJson(response.body().string(), type);
 
@@ -81,7 +83,7 @@ public class PlayerTracker {
             requestObj.username = client.getLocalPlayer().getName();
             requestObj.accountType = client.getAccountType().toString();
 
-            Gson gson = new GsonBuilder().serializeNulls().create();
+            Gson gson = this.gson.newBuilder().serializeNulls().create();
             String json = gson.toJson(requestObj);
 
             Request request = new Request.Builder()
