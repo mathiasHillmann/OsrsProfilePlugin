@@ -24,7 +24,7 @@ import javax.inject.Inject;
 
 @Slf4j
 public class PlayerTracker {
-    private final String API_URL = "http://api.osrsprofile.com/public/player";
+    private final String API_URL = "https://api.osrsprofile.com/public/player";
 
     private Map<String, TrackingObject> playerData = new HashMap<>();
 
@@ -60,8 +60,10 @@ public class PlayerTracker {
 
             if (response.code() == 200) {
                 Type type = new TypeToken<Map<String, TrackingObject>>() {}.getType();
-                this.playerData = gson.fromJson(response.body().string(), type);
+                String responseString = response.body().string();
+                log.debug(responseString);
 
+                this.playerData = gson.fromJson(responseString, type);
             } else {
                 log.error("Could not fetch player data from api, api returned: ("+response.code()+") - "+response.body().string());
             }
@@ -85,6 +87,8 @@ public class PlayerTracker {
 
             Gson gson = this.gson.newBuilder().serializeNulls().create();
             String json = gson.toJson(requestObj);
+
+            log.debug(API_URL+'/'+this.accountHash+": "+json);
 
             Request request = new Request.Builder()
                     .url(API_URL+'/'+this.accountHash)
