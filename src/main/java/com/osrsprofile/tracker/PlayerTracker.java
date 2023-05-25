@@ -24,12 +24,15 @@ import javax.inject.Inject;
 
 @Slf4j
 public class PlayerTracker {
-    private final String API_URL = "https://api.osrsprofile.com/public/player";
+    private final String API_URL = "https://api.osrsprofile.com/runelite/player";
 
     private Map<String, TrackingObject> playerData = new HashMap<>();
 
     @Inject
     private OkHttpClient httpClient;
+
+    @Inject
+    private Client client;
 
     @Inject
     private Gson gson;
@@ -72,7 +75,7 @@ public class PlayerTracker {
         }
     }
 
-    public void submitToApi(Client client)
+    public void submitToApi()
     {
         if (this.accountHash == null) {
             return;

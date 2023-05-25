@@ -56,7 +56,7 @@ public class OsrsProfilePlugin extends Plugin
 	public void submitToAPI()
 	{
 		if (client != null) {
-			this.playerTracker.submitToApi(client);
+			this.playerTracker.submitToApi();
 		}
 	}
 
