@@ -1,7 +1,6 @@
 package com.osrsprofile.tracker;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.osrsprofile.OsrsProfileConfig;
 import com.osrsprofile.tracker.dto.TrackingObject;
@@ -14,6 +13,8 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.runelite.api.Varbits;
+import net.runelite.client.config.RuneScapeProfileType;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -41,7 +42,7 @@ public class PlayerTracker {
 
     public void fetchPlayerData(OsrsProfileConfig config)
     {
-        if (this.accountHash == null) {
+        if (this.accountHash == null || RuneScapeProfileType.getCurrent(client) != RuneScapeProfileType.STANDARD) {
             return;
         }
 
@@ -77,16 +78,17 @@ public class PlayerTracker {
 
     public void submitToApi()
     {
-        if (this.accountHash == null) {
+        if (this.accountHash == null || RuneScapeProfileType.getCurrent(client) != RuneScapeProfileType.STANDARD) {
             return;
         }
+
         this.updatePlayerModel(client);
 
         try {
             TrackingRequest requestObj = new TrackingRequest();
             requestObj.data = this.playerData;
             requestObj.username = client.getLocalPlayer().getName();
-            requestObj.accountType = client.getAccountType().toString();
+            requestObj.accountType = this.getAccountType();
 
             Gson gson = this.gson.newBuilder().serializeNulls().create();
             String json = gson.toJson(requestObj);
@@ -128,5 +130,9 @@ public class PlayerTracker {
         }
 
         return value;
+    }
+
+    private String getAccountType() {
+        return AccountType.getType(client.getVarbitValue(Varbits.ACCOUNT_TYPE)).toString();
     }
 }
