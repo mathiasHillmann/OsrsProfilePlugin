@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.runelite.api.Varbits;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.RuneScapeProfileType;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -37,6 +38,9 @@ public class PlayerTracker {
 
     @Inject
     private Gson gson;
+
+    @Inject
+    private ConfigManager configManager;
 
     public String accountHash = null;
 
@@ -126,6 +130,13 @@ public class PlayerTracker {
                 break;
             case "varp":
                 value = client.getVarpValue(Integer.parseInt(index));
+                break;
+            case "killcount":
+                value = configManager.getRSProfileConfiguration("killcount", index, int.class);
+                break;
+            case "personalbest":
+                Double pb = configManager.getRSProfileConfiguration("personalbest", index, double.class);
+                value = pb != null ? Math.toIntExact(Math.round(pb)) : null;
                 break;
         }
 
