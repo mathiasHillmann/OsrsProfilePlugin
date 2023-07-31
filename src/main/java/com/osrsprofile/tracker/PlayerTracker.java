@@ -138,6 +138,9 @@ public class PlayerTracker {
                 Double pb = configManager.getRSProfileConfiguration("personalbest", index, double.class);
                 value = pb != null ? Math.toIntExact(Math.round(pb)) : null;
                 break;
+            default:
+                value = null;
+                break;
         }
 
         return value;
