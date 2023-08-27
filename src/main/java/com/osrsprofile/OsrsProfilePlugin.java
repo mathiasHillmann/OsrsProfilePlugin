@@ -65,12 +65,7 @@ public class OsrsProfilePlugin extends Plugin
 	{
 		String accountHash = String.valueOf(client.getAccountHash());
 
-		if (event.getGameState() == GameState.LOGIN_SCREEN) {
-			playerTracker.accountHash = null;
-		} else if (playerTracker.accountHash == null && !accountHash.equals("-1")) {
-			playerTracker.accountHash = accountHash;
-			playerTracker.fetchPlayerData(this.config);
-		}
+		playerTracker.setAccountHash(accountHash, this.config);
 	}
 
 	@Subscribe
