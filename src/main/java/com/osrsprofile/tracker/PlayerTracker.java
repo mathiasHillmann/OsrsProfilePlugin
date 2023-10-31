@@ -3,6 +3,7 @@ package com.osrsprofile.tracker;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.osrsprofile.OsrsProfileConfig;
+import com.osrsprofile.api.Api;
 import com.osrsprofile.tracker.dto.TrackingObject;
 import com.osrsprofile.tracker.dto.TrackingRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -17,10 +18,6 @@ import net.runelite.api.Skill;
 import net.runelite.api.Varbits;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.RuneScapeProfileType;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,12 +25,8 @@ import javax.inject.Inject;
 
 @Slf4j
 public class PlayerTracker {
-    private final String API_URL = "https://api.osrsprofile.com/runelite/player";
 
     private Map<String, TrackingObject> playerData = new HashMap<>();
-
-    @Inject
-    private OkHttpClient httpClient;
 
     @Inject
     private Client client;
@@ -43,6 +36,9 @@ public class PlayerTracker {
 
     @Inject
     private ConfigManager configManager;
+
+    @Inject
+    private Api api;
 
     private String accountHash = null;
 
@@ -62,25 +58,20 @@ public class PlayerTracker {
         }
 
         try {
-            Request request = new Request.Builder()
-                    .url(API_URL+'/'+this.accountHash
-                        +"?quests="+config.trackQuests()
-                        +"&skills="+config.trackSkills()
-                        +"&minigames="+config.trackMinigames()
-                        +"&diaries="+config.trackDiaries()
-                        +"&combat="+config.trackCombat()
-                        +"&bosskills="+config.trackBossKills()
-                        +"&slayermonsters="+config.trackSlayerMonstersKills()
-                    )
-                    .addHeader("User-Agent", "RuneLite")
-                    .build();
-
-            Response response = httpClient.newCall(request).execute();
+            Response response = this.api.get(this.accountHash
+                    +"?quests="+config.trackQuests()
+                    +"&skills="+config.trackSkills()
+                    +"&minigames="+config.trackMinigames()
+                    +"&diaries="+config.trackDiaries()
+                    +"&combat="+config.trackCombat()
+                    +"&bosskills="+config.trackBossKills()
+                    +"&slayermonsters="+config.trackSlayerMonstersKills()
+                    +"&collectionlog="+config.trackCollectionLog()
+                );
 
             if (response.code() == 200) {
                 Type type = new TypeToken<Map<String, TrackingObject>>() {}.getType();
                 String responseString = response.body().string();
-                log.debug(responseString);
 
                 this.playerData = gson.fromJson(responseString, type);
             } else {
@@ -108,17 +99,8 @@ public class PlayerTracker {
             Gson gson = this.gson.newBuilder().serializeNulls().create();
             String json = gson.toJson(requestObj);
 
-            log.debug(API_URL+'/'+this.accountHash+": "+json);
+            this.api.post(this.accountHash, json);
 
-            Request request = new Request.Builder()
-                    .url(API_URL+'/'+this.accountHash)
-                    .post(RequestBody.create(MediaType.parse("application/json"), json))
-                    .addHeader("User-Agent", "RuneLite")
-                    .addHeader("Content-Type", "application/json")
-                    .build();
-
-            Response response = httpClient.newCall(request).execute();
-            log.debug(response.body().string());
         } catch (Exception e) {
             log.error("Could not submit player data to api", e);
         }

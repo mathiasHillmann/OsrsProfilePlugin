@@ -1,18 +1,21 @@
 package com.osrsprofile;
 
-import com.google.inject.Provides;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
+import com.google.inject.Provides;
+import com.osrsprofile.exporter.PlayerExporter;
 import com.osrsprofile.tracker.PlayerTracker;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.MenuOptionClicked;
+import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.menus.MenuManager;
+import net.runelite.client.menus.WidgetMenuOption;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.task.Schedule;
@@ -39,22 +42,44 @@ public class OsrsProfilePlugin extends Plugin
 	private PlayerTracker playerTracker;
 
 	@Inject
+	private PlayerExporter playerExporter;
+
+	@Inject
 	private Provider<MenuManager> menuManager;
 
 	private final int SECONDS_BETWEEN_UPLOADS = 60;
 
 	private static final String MENU_OPTION = "Profile";
 
+	private static final String MENU_TARGET = "Player";
+
+	private static final String EXPORT_MODEL = "Export Model to OSRS Profile";
+
+	private static final WidgetMenuOption FIXED_EQUIPMENT_TAB_EXPORT = new WidgetMenuOption(EXPORT_MODEL,
+			MENU_TARGET, WidgetInfo.FIXED_VIEWPORT_EQUIPMENT_TAB);
+	private static final WidgetMenuOption RESIZABLE_EQUIPMENT_TAB_EXPORT = new WidgetMenuOption(EXPORT_MODEL,
+			MENU_TARGET, WidgetInfo.RESIZABLE_VIEWPORT_EQUIPMENT_TAB);
+	private static final WidgetMenuOption RESIZABLE_VIEWPORT_BOTTOM_LINE_INVENTORY_TAB_EXPORT = new WidgetMenuOption(EXPORT_MODEL,
+			MENU_TARGET,WidgetInfo.RESIZABLE_VIEWPORT_BOTTOM_LINE_INVENTORY_TAB);
+
 	@Override
 	protected void startUp() {
 		log.info("Player tracker started");
 		menuManager.get().addPlayerMenuItem(MENU_OPTION);
+
+		menuManager.get().addManagedCustomMenu(FIXED_EQUIPMENT_TAB_EXPORT,this::exportLocalPlayerModel);
+		menuManager.get().addManagedCustomMenu(RESIZABLE_EQUIPMENT_TAB_EXPORT,this::exportLocalPlayerModel);
+		menuManager.get().addManagedCustomMenu(RESIZABLE_VIEWPORT_BOTTOM_LINE_INVENTORY_TAB_EXPORT,this::exportLocalPlayerModel);
 	}
 
 	@Override
 	protected void shutDown() {
 		log.info("Player tracker stopped");
 		menuManager.get().removePlayerMenuItem(MENU_OPTION);
+
+		menuManager.get().removeManagedCustomMenu(FIXED_EQUIPMENT_TAB_EXPORT);
+		menuManager.get().removeManagedCustomMenu(RESIZABLE_EQUIPMENT_TAB_EXPORT);
+		menuManager.get().removeManagedCustomMenu(RESIZABLE_VIEWPORT_BOTTOM_LINE_INVENTORY_TAB_EXPORT);
 	}
 
 	@Provides
@@ -113,5 +138,10 @@ public class OsrsProfilePlugin extends Plugin
 		if (event.getGroup().equals("osrsprofile")) {
 			playerTracker.fetchPlayerData(this.config);
 		}
+	}
+
+	public void exportLocalPlayerModel(MenuEntry entry)
+	{
+		this.playerExporter.export();
 	}
 }

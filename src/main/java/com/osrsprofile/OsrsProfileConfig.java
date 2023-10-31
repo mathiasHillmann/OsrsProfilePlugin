@@ -76,4 +76,14 @@ public interface OsrsProfileConfig extends Config
 	{
 		return true;
 	}
+
+	@ConfigItem(
+			keyName = "trackCollectionLog",
+			name = "Track collection log",
+			description = "Whether to track the collection log or not"
+	)
+	default boolean trackCollectionLog()
+	{
+		return true;
+	}
 }
