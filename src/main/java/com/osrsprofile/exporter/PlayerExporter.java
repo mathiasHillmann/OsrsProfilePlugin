@@ -37,22 +37,22 @@ public class PlayerExporter {
      21285 - Infernal Max Cape
      21295 - Infernal Cape
      */
-    private int[] capeBlacklist = {6570, 21285, 21295};
+    private final int[] capeBlacklist = {6570, 21285, 21295};
 
     /*
     12788 - Magic shortbow (i)
      */
-    private int[] weaponBlacklist = {12788};
+    private final int[] weaponBlacklist = {12788};
 
     public void export() {
         try {
             if (this.hasBlacklistedEquipment(KitType.CAPE, this.capeBlacklist)) {
-                client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "redAnimated capes are not allowed. Please unequip or switch for another cape", null);
+                client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=ff0000>Animated capes are not allowed. Please unequip or switch for another cape", null);
                 return;
             }
 
             if (this.hasBlacklistedEquipment(KitType.WEAPON, this.weaponBlacklist)) {
-                client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Animated weapons are not allowed. Please unequip or switch for another weapon", null);
+                client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=ff0000>Animated weapons are not allowed. Please unequip or switch for another weapon", null);
                 return;
             }
 
@@ -62,7 +62,10 @@ public class PlayerExporter {
             if (developerMode) {
                 File file = new File(RuneLite.RUNELITE_DIR, fileName);
                 if (file.isFile()) {
-                    file.delete();
+                    boolean deleted = file.delete();
+                    if (!deleted) {
+                        log.debug("Could not delete model file in runelite dir");
+                    }
                 }
 
                 FileOutputStream fos = new FileOutputStream(file);
