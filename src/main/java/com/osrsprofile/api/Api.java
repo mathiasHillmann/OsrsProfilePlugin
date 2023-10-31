@@ -9,7 +9,7 @@ import java.io.IOException;
 
 @Slf4j
 public class Api {
-    private final String API_URL = "http://osrsprofilebackend.test/runelite/player";
+    private final String API_URL = "https://api.osrsprofile.com/runelite/player";
     private final String DEV_URL = "http://osrsprofilebackend.test/runelite/player";
 
     @Inject
