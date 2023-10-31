@@ -5,7 +5,6 @@ import javax.inject.Provider;
 
 import com.google.inject.Provides;
 import com.osrsprofile.exporter.PlayerExporter;
-import com.osrsprofile.exporter.PlayerModelExporter;
 import com.osrsprofile.tracker.PlayerTracker;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
