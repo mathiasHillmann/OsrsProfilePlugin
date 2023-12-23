@@ -10,7 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.MenuOptionClicked;
-import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.api.widgets.ComponentID;
+import net.runelite.api.widgets.InterfaceID;
 import net.runelite.client.chat.ChatCommandManager;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -64,11 +65,11 @@ public class OsrsProfilePlugin extends Plugin
 	private static final String EXPORT_MODEL_COMMAND = "!exportmodel";
 
 	private static final WidgetMenuOption FIXED_EQUIPMENT_TAB_EXPORT = new WidgetMenuOption(EXPORT_MODEL,
-			MENU_TARGET, WidgetInfo.FIXED_VIEWPORT_EQUIPMENT_TAB);
+			MENU_TARGET, ComponentID.FIXED_VIEWPORT_EQUIPMENT_TAB);
 	private static final WidgetMenuOption RESIZABLE_EQUIPMENT_TAB_EXPORT = new WidgetMenuOption(EXPORT_MODEL,
-			MENU_TARGET, WidgetInfo.RESIZABLE_VIEWPORT_EQUIPMENT_TAB);
+			MENU_TARGET, ComponentID.RESIZABLE_VIEWPORT_EQUIPMENT_TAB);
 	private static final WidgetMenuOption RESIZABLE_VIEWPORT_BOTTOM_LINE_INVENTORY_TAB_EXPORT = new WidgetMenuOption(EXPORT_MODEL,
-			MENU_TARGET,WidgetInfo.RESIZABLE_VIEWPORT_BOTTOM_LINE_INVENTORY_TAB);
+			MENU_TARGET, ComponentID.RESIZABLE_VIEWPORT_BOTTOM_LINE_INVENTORY_TAB);
 
 	@Override
 	protected void startUp() {
