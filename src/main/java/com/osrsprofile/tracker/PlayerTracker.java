@@ -19,7 +19,6 @@ import net.runelite.api.Varbits;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.RuneScapeProfileType;
 import okhttp3.Response;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.inject.Inject;
 
@@ -40,26 +39,10 @@ public class PlayerTracker {
     @Inject
     private Api api;
 
-    private String accountHash = null;
-
-    public void setAccountHash(String accountHash, OsrsProfileConfig config) {
-        log.debug("Account hash: "+accountHash);
-
-        if (!StringUtils.equals(accountHash, this.accountHash)) {
-            this.accountHash = accountHash;
-            this.fetchPlayerData(config);
-        }
-    }
-
-    public void fetchPlayerData(OsrsProfileConfig config)
+    public void fetchVars(OsrsProfileConfig config)
     {
-        if (this.shouldNotMakeRequests()) {
-            return;
-        }
-
         try {
-            Response response = this.api.get(this.accountHash
-                    +"?quests="+config.trackQuests()
+            Response response = this.api.get("vars?quests="+config.trackQuests()
                     +"&skills="+config.trackSkills()
                     +"&minigames="+config.trackMinigames()
                     +"&diaries="+config.trackDiaries()
@@ -75,10 +58,10 @@ public class PlayerTracker {
 
                 this.playerData = gson.fromJson(responseString, type);
             } else {
-                log.error("Could not fetch player data from api, api returned: ("+response.code()+") - "+response.body().string());
+                log.error("Could not fetch vars from api, api returned: ("+response.code()+") - "+response.body().string());
             }
         } catch (Exception e) {
-            log.error("Could not fetch model from api", e);
+            log.error("Could not fetch vars from api", e);
         }
     }
 
@@ -88,7 +71,7 @@ public class PlayerTracker {
             return;
         }
 
-        this.updatePlayerModel(client);
+        this.updatePlayerModel();
 
         try {
             TrackingRequest requestObj = new TrackingRequest();
@@ -99,19 +82,19 @@ public class PlayerTracker {
             Gson gson = this.gson.newBuilder().serializeNulls().create();
             String json = gson.toJson(requestObj);
 
-            this.api.post(this.accountHash, json);
+            this.api.post(String.valueOf(client.getAccountHash()), json);
 
         } catch (Exception e) {
             log.error("Could not submit player data to api", e);
         }
     }
 
-    private void updatePlayerModel(Client client)
+    private void updatePlayerModel()
     {
-        this.playerData.forEach((key, item) -> item.value = this.getValue(item.index, item.type, client));
+        this.playerData.forEach((key, item) -> item.value = this.getValue(item.index, item.type));
     }
 
-    private Integer getValue(String index, String type, Client client) {
+    private Integer getValue(String index, String type) {
         Integer value = null;
 
         switch(type) {
@@ -144,9 +127,7 @@ public class PlayerTracker {
     }
 
     private boolean shouldNotMakeRequests() {
-        return this.accountHash == null
-            || StringUtils.equals(this.accountHash, "-1")
-            || RuneScapeProfileType.getCurrent(client) != RuneScapeProfileType.STANDARD
+        return RuneScapeProfileType.getCurrent(client) != RuneScapeProfileType.STANDARD
             || client.getGameState() == GameState.LOGIN_SCREEN
             || client.getGameState() == GameState.LOGIN_SCREEN_AUTHENTICATOR;
     }
