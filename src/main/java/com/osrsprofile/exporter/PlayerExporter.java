@@ -80,6 +80,7 @@ public class PlayerExporter {
 
             this.api.post(client.getAccountHash() + "/model", formBody);
         } catch (Exception e) {
+            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "<col=ff0000>Could not export your player model, please try again. It might have been an animation or item equipped.", null);
             log.error("Could not export player model", e);
         }
     }

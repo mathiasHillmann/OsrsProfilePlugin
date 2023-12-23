@@ -8,9 +8,10 @@ import com.osrsprofile.exporter.PlayerExporter;
 import com.osrsprofile.tracker.PlayerTracker;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
-import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.client.chat.ChatCommandManager;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -47,13 +48,20 @@ public class OsrsProfilePlugin extends Plugin
 	@Inject
 	private Provider<MenuManager> menuManager;
 
+	@Inject
+	private ChatCommandManager chatCommandManager;
+
 	private final int SECONDS_BETWEEN_UPLOADS = 60;
+
+	private final int SECONDS_BETWEEN_FETCHES = 300;
 
 	private static final String MENU_OPTION = "Profile";
 
 	private static final String MENU_TARGET = "Player";
 
 	private static final String EXPORT_MODEL = "Export Model to OSRS Profile";
+
+	private static final String EXPORT_MODEL_COMMAND = "!exportmodel";
 
 	private static final WidgetMenuOption FIXED_EQUIPMENT_TAB_EXPORT = new WidgetMenuOption(EXPORT_MODEL,
 			MENU_TARGET, WidgetInfo.FIXED_VIEWPORT_EQUIPMENT_TAB);
@@ -70,6 +78,10 @@ public class OsrsProfilePlugin extends Plugin
 		menuManager.get().addManagedCustomMenu(FIXED_EQUIPMENT_TAB_EXPORT,this::exportLocalPlayerModel);
 		menuManager.get().addManagedCustomMenu(RESIZABLE_EQUIPMENT_TAB_EXPORT,this::exportLocalPlayerModel);
 		menuManager.get().addManagedCustomMenu(RESIZABLE_VIEWPORT_BOTTOM_LINE_INVENTORY_TAB_EXPORT,this::exportLocalPlayerModel);
+
+		chatCommandManager.registerCommandAsync(EXPORT_MODEL_COMMAND, this::exportLocalPlayerModel);
+
+		this.playerTracker.fetchVars(this.config);
 	}
 
 	@Override
@@ -80,6 +92,8 @@ public class OsrsProfilePlugin extends Plugin
 		menuManager.get().removeManagedCustomMenu(FIXED_EQUIPMENT_TAB_EXPORT);
 		menuManager.get().removeManagedCustomMenu(RESIZABLE_EQUIPMENT_TAB_EXPORT);
 		menuManager.get().removeManagedCustomMenu(RESIZABLE_VIEWPORT_BOTTOM_LINE_INVENTORY_TAB_EXPORT);
+
+		chatCommandManager.unregisterCommand(EXPORT_MODEL_COMMAND);
 	}
 
 	@Provides
@@ -98,12 +112,15 @@ public class OsrsProfilePlugin extends Plugin
 		}
 	}
 
-	@Subscribe
-	public void onGameStateChanged(GameStateChanged event)
+	@Schedule(
+			period = SECONDS_BETWEEN_FETCHES,
+			unit = ChronoUnit.SECONDS
+	)
+	public void getVarsFromApi()
 	{
-		String accountHash = String.valueOf(client.getAccountHash());
-
-		playerTracker.setAccountHash(accountHash, this.config);
+		if (client != null) {
+			this.playerTracker.fetchVars(this.config);
+		}
 	}
 
 	@Subscribe
@@ -136,12 +153,18 @@ public class OsrsProfilePlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event) {
 		if (event.getGroup().equals("osrsprofile")) {
-			playerTracker.fetchPlayerData(this.config);
+			playerTracker.fetchVars(this.config);
 		}
 	}
 
+	// From menu
 	public void exportLocalPlayerModel(MenuEntry entry)
 	{
+		this.playerExporter.export();
+	}
+
+	// From chat command
+	private void exportLocalPlayerModel(ChatMessage chatMessage, String s) {
 		this.playerExporter.export();
 	}
 }
